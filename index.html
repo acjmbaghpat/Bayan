@@ -1,1 +1,449 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0c1a3d">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg">
+<title>बयान सहायक</title>
+<style>
+:root{
+  --navy:#0c1a3d;--navy2:#142a5c;--navy3:#1d3a7a;--gold:#c9a227;--gold2:#f6ebc6;--gold3:#e3c461;
+  --bg:#eef1f7;--card:#fff;--ink:#16213b;--mute:#6b7690;--line:#dde3ee;
+  --blue:#2563eb;--amber:#d97706;--green:#15803d;--rose:#be123c;--violet:#7c3aed;
+  --dev:"Noto Sans Devanagari","Lohit Devanagari","Mangal","Nirmala UI",sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--ink);font-family:system-ui,"Segoe UI",Roboto,var(--dev);font-size:14px}
+button,select,input,textarea{font:inherit;color:inherit}
+.app{display:grid;grid-template-columns:220px 1fr;grid-template-rows:56px 1fr;height:100vh}
+/* header */
+.top{grid-column:1/-1;display:flex;align-items:center;gap:14px;padding:0 18px;background:linear-gradient(90deg,var(--navy),var(--navy2));color:#fff;box-shadow:0 2px 10px rgba(12,26,61,.25);z-index:5}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:17px;letter-spacing:.2px;white-space:nowrap}
+.brand .lg{width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,var(--gold3),var(--gold));color:var(--navy);display:grid;place-items:center;font-size:18px}
+.brand small{display:block;font-weight:500;font-size:10.5px;color:var(--gold3);letter-spacing:1px}
+.top .sp{flex:1}
+.pill{display:flex;align-items:center;gap:7px;padding:5px 12px;border-radius:20px;background:rgba(255,255,255,.1);font-size:12.5px;white-space:nowrap;cursor:pointer;border:1px solid rgba(255,255,255,.15)}
+.pill i{width:8px;height:8px;border-radius:50%;background:#94a3b8;flex:none}
+.pill.ok i{background:#4ade80;box-shadow:0 0 0 3px rgba(74,222,128,.25)}
+.pill.wait i{background:#fbbf24}
+.pill.err i{background:#f87171}
+#stats{font-size:12px;color:#c7d0e6;white-space:nowrap}
+/* side */
+.side{background:var(--navy);padding:14px 10px;display:flex;flex-direction:column;gap:4px}
+.side{overflow-y:auto}
+.side button{display:flex;align-items:center;gap:12px;border:0;background:none;color:#c7d0e6;padding:9px 14px;border-radius:10px;cursor:pointer;text-align:left;font-size:14.5px;position:relative}
+.side button .ic{width:22px;text-align:center;font-size:16px}
+.side button:hover{background:rgba(255,255,255,.06);color:#fff}
+.side button.on{background:linear-gradient(90deg,rgba(201,162,39,.22),rgba(201,162,39,.04));color:#fff;font-weight:600}
+.side button.on::before{content:"";position:absolute;left:-10px;top:8px;bottom:8px;width:4px;border-radius:0 4px 4px 0;background:var(--gold)}
+.side .sh{font-size:10.5px;letter-spacing:1px;color:#7f8bb0;padding:12px 14px 4px;text-transform:uppercase}
+.side .foot{margin-top:auto;padding:12px;font-size:11px;color:#7f8bb0;line-height:1.6}
+main{overflow:auto;position:relative}
+.view{display:none;padding:18px 22px 40px;max-width:1200px;margin:0 auto}
+.view.on{display:block}
+.h{display:flex;align-items:center;gap:10px;margin:0 0 14px;flex-wrap:wrap}
+.h h2{margin:0;font-size:19px;color:var(--navy)}
+.h .sp{flex:1}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;box-shadow:0 1px 3px rgba(12,26,61,.05);border-top:4px solid var(--navy3)}
+.card.blue{border-top-color:var(--blue)}.card.amber{border-top-color:var(--amber)}.card.green{border-top-color:var(--green)}.card.rose{border-top-color:var(--rose)}.card.gold{border-top-color:var(--gold)}.card.violet{border-top-color:var(--violet)}
+.card h3{margin:0 0 10px;font-size:14.5px;color:var(--navy)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px}
+.kpi{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px;border-left:4px solid var(--blue)}
+.kpi b{display:block;font-size:22px;color:var(--navy)}
+.kpi span{font-size:12px;color:var(--mute)}
+.kpi:nth-child(2){border-left-color:var(--amber)}.kpi:nth-child(3){border-left-color:var(--green)}.kpi:nth-child(4){border-left-color:var(--violet)}
+.btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:#fff;padding:7px 13px;border-radius:9px;cursor:pointer;font-size:13.5px;white-space:nowrap}
+.btn:hover{border-color:var(--navy3);color:var(--navy3)}
+.btn.pr{background:linear-gradient(180deg,var(--navy3),var(--navy2));border-color:var(--navy2);color:#fff;box-shadow:0 2px 6px rgba(20,42,92,.3)}
+.btn.pr:hover{color:#fff;filter:brightness(1.1)}
+.btn.gd{background:linear-gradient(180deg,var(--gold3),var(--gold));border-color:var(--gold);color:var(--navy);font-weight:600}
+.btn.dn{color:var(--rose);border-color:#f3c5cf}
+.inp{border:1px solid var(--line);border-radius:9px;padding:8px 11px;background:#fff;width:100%}
+.inp:focus{outline:2px solid var(--gold3);border-color:var(--gold)}
+label.row{display:flex;gap:10px;align-items:center;margin:9px 0;cursor:pointer}
+.mut{color:var(--mute);font-size:12.5px;line-height:1.65}
+.ok{color:var(--green)}.er{color:var(--rose)}
+/* writer */
+#vWrite{max-width:none;padding:0}
+#vWrite.on{display:flex;flex-direction:column;height:100%}
+.wbar{flex:none;z-index:4;background:#fff;border-bottom:1px solid var(--line)}
+.wtop{display:flex;align-items:center;gap:8px;padding:9px 16px;flex-wrap:wrap}
+#title{flex:1;min-width:180px;border:1px solid transparent;border-radius:8px;padding:6px 10px;font-size:16px;font-weight:600;color:var(--navy);background:transparent;font-family:var(--dev)}
+#title:hover{border-color:var(--line)}#title:focus{outline:none;border-color:var(--gold);background:#fffdf5}
+.ribbon{display:flex;align-items:center;gap:3px;padding:6px 12px;background:#f7f9fc;border-top:1px solid var(--line);overflow-x:auto;scrollbar-width:thin}
+.ribbon .g{display:flex;align-items:center;gap:2px;padding:0 6px;border-right:1px solid var(--line)}
+.ribbon .g:last-child{border:0}
+.tb{min-width:32px;height:32px;border:1px solid transparent;background:none;border-radius:7px;cursor:pointer;display:grid;place-items:center;font-size:15px;padding:0 6px;flex:none;color:#26324f}
+.tb:hover{background:#e8edf6}
+.tb.on{background:var(--gold2);border-color:var(--gold3);color:var(--navy)}
+.ribbon select{height:32px;border:1px solid var(--line);border-radius:7px;background:#fff;padding:0 6px;font-size:13px}
+.clr{position:relative}
+.clr input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.clr .bar{position:absolute;left:7px;right:7px;bottom:4px;height:3px;border-radius:2px}
+#strip{display:none;gap:6px;padding:7px 12px;overflow-x:auto;background:#fffaf0;border-top:1px solid var(--gold2);white-space:nowrap}
+#strip button{border:1px solid var(--gold3);background:#fff;border-radius:16px;padding:5px 12px;font-size:16px;font-family:var(--dev);flex:none}
+#strip button.ph{background:var(--gold2);border-color:var(--gold);color:var(--navy)}
+#strip button:first-child{font-weight:700}
+.canvas{flex:1;overflow:auto;padding:26px 16px 80px;background:#e4e8f0}
+#ed{width:min(794px,100%);min-height:1050px;margin:0 auto;background:#fff;padding:72px 76px;box-shadow:0 2px 14px rgba(12,26,61,.14);border-radius:3px;outline:none;font-family:var(--dev);font-size:16pt;line-height:1.5;color:#111;word-wrap:break-word}
+#ed p,#ed div{margin:0 0 6pt}
+#ed blockquote{margin:0 0 6pt 40px}
+#ed ul,#ed ol{margin:0 0 6pt;padding-left:32px}
+#ed:empty::before{content:"यहाँ बयान टाइप करें… (Inscript)";color:#9aa3b5}
+#banner{display:none;margin:0 auto 12px;width:min(794px,100%);background:#fff7e0;border:1px solid var(--gold3);border-radius:10px;padding:10px 14px;align-items:center;gap:10px;font-size:13.5px}
+#pop{position:fixed;display:none;z-index:40;background:#fff;border:1px solid var(--gold);border-radius:12px;box-shadow:0 10px 30px rgba(12,26,61,.25);min-width:240px;max-width:min(600px,94vw);overflow:hidden;font-family:var(--dev);font-size:17px}
+#pop .r{display:flex;align-items:baseline;gap:8px;padding:6px 12px;cursor:pointer;white-space:nowrap}
+#pop .r.sel{background:var(--gold2)}
+#pop .w{font-weight:700;color:var(--navy)}
+#pop .x{color:var(--mute);overflow:hidden;text-overflow:ellipsis}
+#pop .c{margin-left:auto;font-size:11px;color:#9aa3b5;font-family:system-ui}
+#pop .sp2{padding:6px 12px;font-size:12.5px;color:var(--mute);border-bottom:1px solid var(--line);font-family:system-ui}
+#pop .sp2 b{color:var(--rose);font-family:var(--dev);font-size:15px}
+#pop .ok2{color:var(--green);font-size:14px}
+::highlight(spell){text-decoration:underline wavy #e11d48;text-decoration-thickness:1.5px;text-underline-offset:4px;text-decoration-skip-ink:none}
+#pop .f{padding:4px 12px;font-size:11px;color:#fff;background:var(--navy);font-family:system-ui}
+/* lists */
+.list{display:flex;flex-direction:column;gap:10px}
+.doc{display:flex;gap:12px;align-items:center;background:#fff;border:1px solid var(--line);border-left:4px solid var(--gold);border-radius:12px;padding:12px 14px;cursor:pointer}
+.doc:hover{box-shadow:0 3px 12px rgba(12,26,61,.1)}
+.doc.cur{border-left-color:var(--green);background:#f6fbf7}
+.doc .t{font-weight:600;color:var(--navy);font-family:var(--dev)}
+.doc .p{color:var(--mute);font-size:13px;font-family:var(--dev);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:62vw}
+.doc .m{margin-left:auto;text-align:right;font-size:11.5px;color:var(--mute);white-space:nowrap}
+#drop{border:2px dashed #b8c3da;border-radius:12px;padding:26px;text-align:center;color:var(--mute);cursor:pointer;background:#f8faff}
+#drop.over{border-color:var(--gold);background:var(--gold2)}
+#drop b{color:var(--navy);font-size:15px}
+#flist{max-height:340px;overflow:auto;font-size:13px}
+#flist div{padding:6px 2px;border-bottom:1px solid var(--line);display:flex;gap:8px}
+#flist div span:last-child{margin-left:auto;color:var(--mute)}
+table{border-collapse:collapse;width:100%;font-family:var(--dev)}
+th{background:var(--navy);color:#fff;font-weight:600;font-family:system-ui;font-size:12px;text-transform:uppercase;letter-spacing:.5px}
+td,th{padding:7px 10px;text-align:left}
+tbody tr:nth-child(even){background:#f6f8fc}
+td.n{color:var(--mute);width:80px;font-family:system-ui}
+td button{border:0;background:none;color:var(--rose);cursor:pointer}
+textarea.inp{min-height:110px;font-family:ui-monospace,monospace;font-size:12px}
+pre.rules{background:#0f1b38;color:#e6ecff;padding:12px;border-radius:10px;font-size:11.5px;overflow:auto}
+#vTpl.over{outline:3px dashed var(--gold);outline-offset:-8px;background:var(--gold2)}
+.tplwrap{display:grid;grid-template-columns:270px 1fr;gap:16px;align-items:start}
+.tree{padding:10px;border-top-color:var(--gold);position:sticky;top:0}
+.ti{display:flex;align-items:center;gap:6px;padding:7px 10px;border-radius:8px;cursor:pointer;font-family:var(--dev);font-size:14px}
+.ti:hover{background:#f1f4fa}.ti.on{background:var(--gold2);color:var(--navy);font-weight:600}
+.ti.grp{font-weight:600;color:var(--navy);margin-top:4px}.ti.sub{padding-left:30px;font-size:13.5px}
+.ti .tn{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ti .tc{font-size:11px;background:#e8edf6;color:var(--mute);border-radius:10px;padding:0 7px;font-family:system-ui}
+.ti .ta{display:none;gap:2px}.ti:hover .ta{display:flex}
+.ti .ta button{border:0;background:none;cursor:pointer;color:var(--mute);padding:0 3px;font-size:13px}
+.ti .ta button:hover{color:var(--navy3)}
+.doc.tpl{cursor:default;border-left-color:var(--navy3);flex-wrap:wrap}
+.doc.tpl .p{max-width:none;white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.doc .tb2{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.tag{display:inline-block;background:#eef2fb;color:var(--navy3);border-radius:6px;padding:0 6px;font-size:11.5px;font-family:system-ui}
+#tplBar{display:none;align-items:center;gap:10px;padding:8px 16px;background:linear-gradient(90deg,var(--navy2),var(--navy3));color:#fff;font-size:13.5px;flex-wrap:wrap}
+#tplBar b{color:var(--gold3)}
+#modal{display:none;position:fixed;inset:0;background:rgba(12,26,61,.45);backdrop-filter:blur(2px);z-index:70;align-items:center;justify-content:center;padding:16px}
+.mbox{background:#fff;border-radius:16px;width:min(480px,100%);max-height:90vh;overflow:auto;border-top:5px solid var(--gold);box-shadow:0 20px 50px rgba(0,0,0,.3)}
+.mbox h3{margin:0;padding:16px 18px 6px;color:var(--navy);font-family:var(--dev)}
+#mB{padding:8px 18px;font-family:var(--dev)}
+.mf{display:flex;justify-content:flex-end;gap:8px;padding:12px 18px 16px}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--navy);color:#fff;padding:10px 18px;border-radius:24px;font-size:13.5px;opacity:0;transition:.25s;pointer-events:none;z-index:60;border:1px solid var(--gold)}
+.toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
 
+/* ===== डार्क मोड ===== */
+body.dark{--bg:#0b1120;--card:#141c2e;--ink:#e3e8f3;--mute:#8e9ab3;--line:#26324b;--gold2:#3a3218;--navy:#08101f;--navy2:#0e1a33}
+body.dark .top{background:linear-gradient(90deg,#08101f,#101d3a)}
+body.dark .side{background:#08101f}
+body.dark .h h2,body.dark .card h3,body.dark .kpi b,body.dark .doc .t,body.dark #title,body.dark .ti.grp,body.dark .mbox h3{color:#e9d9a0}
+body.dark .btn{background:#1a2338;border-color:var(--line);color:var(--ink)}
+body.dark .btn:hover{border-color:var(--gold);color:var(--gold3)}
+body.dark .btn.pr{background:linear-gradient(180deg,#2a4a8f,#1d3a7a);color:#fff;border-color:#2a4a8f}
+body.dark .btn.gd{background:linear-gradient(180deg,var(--gold3),var(--gold));border-color:var(--gold);color:#1a1405}
+body.dark .btn.dn{color:#fb7185;border-color:#5b2232}
+body.dark .inp,body.dark .ribbon select,body.dark select{background:#0f1729;border-color:var(--line);color:var(--ink)}
+body.dark .wbar,body.dark .ribbon{background:#121a2c;border-color:var(--line)}
+body.dark .tb{color:#cbd5e6}body.dark .tb:hover{background:#1f2a42}
+body.dark .tb.on{background:#3a3218;border-color:#8a6f1f;color:#f3d77a}
+body.dark .canvas{background:#0a0f1c}
+body.dark #ed{filter:invert(.9) hue-rotate(180deg);box-shadow:0 2px 18px rgba(0,0,0,.6)}
+body.dark #ed:empty::before{color:#555}
+body.dark .kpi,body.dark .doc,body.dark .card{background:var(--card);border-color:var(--line)}
+body.dark .doc.cur{background:#132519}
+body.dark #pop,body.dark .mbox{background:#141c2e;color:var(--ink)}
+body.dark #pop .w{color:#f3d77a}
+body.dark #pop .r.sel{background:#2a2a1a}
+body.dark #strip{background:#1a1a12;border-color:#3a3218}
+body.dark #strip button{background:#141c2e;color:var(--ink);border-color:#6b5a20}
+body.dark #banner{background:#2a2410;border-color:#6b5a20}
+body.dark tbody tr:nth-child(even){background:#111a2b}
+body.dark th{background:#0e1a33}
+body.dark #drop{background:#0f1729;border-color:#33415f}
+body.dark .ti:hover{background:#1a2338}body.dark .ti.on{background:#3a3218;color:#f3d77a}
+body.dark .ti .tc,body.dark .tag{background:#1f2a42;color:#9fb0d0}
+body.dark pre.rules{background:#060b16}
+body.dark .toast{background:#1a2338}
+body.dark #title:hover{border-color:var(--line)}body.dark #title:focus{background:#0f1729}
+body.dark ::highlight(spell){text-decoration-color:#e11d48}
+@media (max-width:820px){
+  .app{grid-template-columns:1fr;grid-template-rows:52px 1fr 60px}
+  .side{grid-row:3;flex-direction:row;padding:4px;gap:0;overflow-x:auto;overflow-y:hidden}
+  .side button{flex-direction:column;gap:2px;padding:6px 4px;font-size:10.5px;flex:none;min-width:68px;align-items:center;text-align:center}
+  .side .sh{display:none}
+  .tplwrap{grid-template-columns:1fr!important}
+  .side button.on::before{left:20%;right:20%;top:-4px;bottom:auto;width:auto;height:3px;border-radius:0 0 3px 3px}
+  .side .foot,#stats,.brand small{display:none}
+  .view{padding:14px 12px 30px}
+  .canvas{padding:10px 6px 60px}
+  #ed{padding:22px 18px;min-height:70vh;font-size:14pt}
+  .doc .p{max-width:48vw}
+}
+body.touch #strip{display:flex}
+@media print{
+  body.dark #ed{filter:none!important}
+  ::highlight(spell){text-decoration:none}
+  #vWrite.on{display:block!important;height:auto}.canvas{overflow:visible}
+  .top,.side,.wbar,#banner,#pop{display:none!important}
+  .app{display:block;height:auto}main{overflow:visible}
+  .view{display:none!important}#vWrite{display:block!important}
+  .canvas{padding:0;background:#fff}#ed{box-shadow:none;width:auto;padding:0;min-height:0}
+  @page{size:A4;margin:2.2cm}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="brand"><div class="lg">⚖</div><div>बयान सहायक<small>PESHGAR BAYAN · ACJM</small></div></div>
+    <div class="sp"></div>
+    <div id="stats"></div>
+    <button class="pill" id="bTheme" title="डार्क मोड" style="font-size:15px;padding:4px 10px;color:#fff">🌙</button>
+    <div class="pill" id="syncPill" title="सिंक"><i></i><span>लोकल</span></div>
+  </header>
+
+  <nav class="side">
+    <button data-v="vWrite" class="on"><span class="ic">✍</span>लिखें</button>
+    <button data-v="vDocs"><span class="ic">📄</span>मेरे बयान</button>
+    <div class="sh">फ़ॉर्मेट</div>
+    <button data-v="vTpl" data-cat="format"><span class="ic">📋</span>बयान फ़ॉर्मेट</button>
+    <button data-v="vTpl" data-cat="app"><span class="ic">📝</span>प्रार्थना पत्र</button>
+    <button data-v="vTpl" data-cat="letter"><span class="ic">✉</span>पत्र</button>
+    <button data-v="vTpl" data-cat="order"><span class="ic">⚖</span>आदेश</button>
+    <button data-v="vTpl" data-cat="misc"><span class="ic">🗂</span>विविध</button>
+    <div class="sh">शब्द</div>
+    <button data-v="vFiles"><span class="ic">⬆</span>फ़ाइलें</button>
+    <button data-v="vDict"><span class="ic">📚</span>शब्दकोश</button>
+    <button data-v="vSync"><span class="ic">☁</span>सिंक</button>
+    <button data-v="vSet"><span class="ic">⚙</span>सेटिंग</button>
+    <div class="foot">बिना इंटरनेट भी चलता है।<br>नेट आते ही अपने-आप सिंक।</div>
+  </nav>
+
+  <main id="main">
+    <!-- लिखें -->
+    <section class="view on" id="vWrite">
+      <div class="wbar">
+        <div class="wtop">
+          <input id="title" placeholder="बयान का शीर्षक / मुकदमा संख्या">
+          <button class="btn" id="bNew">＋ नया</button>
+          <button class="btn pr" id="bCopy">⧉ कॉपी (LibreOffice)</button>
+          <button class="btn" id="bDocx">⬇ .docx</button>
+          <button class="btn" id="bPrint">🖨 प्रिंट</button>
+          <button class="btn" id="bAsTpl" title="इस बयान को फ़ॉर्मेट बनाएँ">📋 फ़ॉर्मेट बनाएँ</button>
+        </div>
+        <div id="tplBar">📋 <b>फ़ॉर्मेट बदल रहे हैं:</b> <span id="tplPath"></span><span style="flex:1"></span><button class="btn gd" id="bTplDone">✓ सेव करके वापस</button><button class="btn" id="bTplUse">✍ इससे नया बयान</button></div>
+        <div class="ribbon" id="ribbon">
+          <div class="g">
+            <button class="tb" data-c="undo" title="Undo (Ctrl+Z)">↶</button>
+            <button class="tb" data-c="redo" title="Redo (Ctrl+Y)">↷</button>
+          </div>
+          <div class="g">
+            <select id="fFont" title="फ़ॉन्ट">
+              <option value="Noto Sans Devanagari">Noto Sans Devanagari</option>
+              <option value="Mangal">Mangal</option>
+              <option value="Lohit Devanagari">Lohit Devanagari</option>
+              <option value="Kokila">Kokila</option>
+              <option value="Noto Serif Devanagari">Noto Serif Devanagari</option>
+              <option value="Times New Roman">Times New Roman</option>
+              <option value="Arial">Arial</option>
+            </select>
+            <select id="fSize" title="साइज़ (pt)"></select>
+          </div>
+          <div class="g">
+            <button class="tb" data-c="bold" title="Bold (Ctrl+B)"><b>B</b></button>
+            <button class="tb" data-c="italic" title="Italic (Ctrl+I)"><i style="font-family:serif">I</i></button>
+            <button class="tb" data-c="underline" title="Underline (Ctrl+U)"><u>U</u></button>
+            <button class="tb" data-c="strikeThrough" title="Strike"><s>S</s></button>
+            <button class="tb" data-c="superscript" title="Superscript">x²</button>
+            <span class="tb clr" title="टेक्स्ट रंग">A<span class="bar" id="fcBar" style="background:#c00000"></span><input type="color" id="fColor" value="#c00000"></span>
+            <span class="tb clr" title="हाइलाइट">🖍<span class="bar" id="hcBar" style="background:#ffff00"></span><input type="color" id="hColor" value="#ffff00"></span>
+          </div>
+          <div class="g">
+            <button class="tb" data-c="justifyLeft" title="बाएँ">⫷</button>
+            <button class="tb" data-c="justifyCenter" title="बीच">≡</button>
+            <button class="tb" data-c="justifyRight" title="दाएँ">⫸</button>
+            <button class="tb" data-c="justifyFull" title="दोनों तरफ़ (Justify)">☰</button>
+          </div>
+          <div class="g">
+            <button class="tb" data-c="insertUnorderedList" title="बुलेट">•≡</button>
+            <button class="tb" data-c="insertOrderedList" title="नंबर">1≡</button>
+            <button class="tb" data-c="outdent" title="इंडेंट कम">⇤</button>
+            <button class="tb" data-c="indent" title="इंडेंट">⇥</button>
+            <select id="fLs" title="लाइन स्पेसिंग"><option value="1">1.0</option><option value="1.15">1.15</option><option value="1.5">1.5</option><option value="2">2.0</option></select>
+          </div>
+          <div class="g">
+            <button class="tb" data-c="removeFormat" title="फ़ॉर्मेटिंग हटाएँ">⌫A</button>
+          </div>
+        </div>
+        <div id="strip"></div>
+      </div>
+      <div class="canvas" id="canvas">
+        <div id="banner"><span>☁ दूसरे डिवाइस पर इस बयान में नया बदलाव है।</span><span style="flex:1"></span><button class="btn gd" id="bnLoad">वो लोड करें</button><button class="btn" id="bnKeep">यही रखें</button></div>
+        <div id="ed" contenteditable="true" spellcheck="false"></div>
+      </div>
+      <div id="pop"></div>
+    </section>
+
+    <!-- मेरे बयान -->
+    <section class="view" id="vDocs">
+      <div class="h"><h2>📄 मेरे बयान</h2><div class="sp"></div><input class="inp" id="dq" placeholder="खोजें…" style="width:220px"><button class="btn gd" id="bNew2">＋ नया बयान</button></div>
+      <div class="list" id="docList"></div>
+    </section>
+
+    <!-- फ़ॉर्मेट / प्रार्थना पत्र / पत्र / आदेश / विविध -->
+    <section class="view" id="vTpl">
+      <div class="h"><h2 id="tplH"></h2><div class="sp"></div><input class="inp" id="tq" placeholder="खोजें…" style="width:200px"><button class="btn pr" id="bTplImp">⬆ अपलोड</button><button class="btn gd" id="bTplNew">＋ नया</button>
+</div>
+      <div class="tplwrap"><div class="card tree" id="tree"></div><div class="list" id="tplList"></div></div>
+    </section>
+
+    <!-- फ़ाइलें -->
+    <section class="view" id="vFiles">
+      <div class="h"><h2>⬆ पुराने बयान से सीखें</h2></div>
+      <div class="kpis" id="kpis"></div>
+      <div class="grid">
+        <div class="card gold">
+          <h3>फ़ाइलें जोड़ें</h3>
+          <div id="drop"><b>फ़ाइलें यहाँ खींचें या क्लिक करें</b><br><span class="mut">.docx · .odt · .rtf · .txt — एक साथ कितनी भी</span></div>
+          <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap">
+            <button class="btn" id="bPick">📎 फ़ाइलें चुनें</button>
+            <button class="btn" id="bFolder">📁 पूरा फ़ोल्डर चुनें</button>
+          </div>
+          <input type="file" id="fi" multiple accept=".docx,.odt,.rtf,.txt,.doc,.md" hidden>
+          <input type="file" id="fd" webkitdirectory multiple hidden>
+          <p class="mut" id="prog"></p>
+          <p class="mut">• पुरानी <b>.doc</b> फ़ाइल: LibreOffice में खोलकर .docx/.odt में सेव करें।<br>• Kruti Dev वाली फ़ाइलें Unicode नहीं होतीं, वो छोड़ दी जाएँगी।<br>• एक ही फ़ाइल दोबारा नहीं गिनी जाती।</p>
+        </div>
+        <div class="card blue">
+          <h3>जुड़ी हुई फ़ाइलें</h3>
+          <div id="flist"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- शब्दकोश -->
+    <section class="view" id="vDict">
+      <div class="h"><h2>📚 शब्दकोश</h2><div class="sp"></div>
+        <input class="inp" id="q" placeholder="शब्द खोजें…" style="width:200px">
+        <input class="inp" id="addw" placeholder="नया शब्द / वाक्यांश" style="width:220px">
+        <button class="btn pr" id="bAdd">जोड़ें</button>
+      </div>
+      <div class="grid" style="grid-template-columns:minmax(300px,1fr) minmax(300px,1fr)">
+      <div class="card"><table><thead><tr><th>शब्द</th><th>बार</th><th></th></tr></thead><tbody id="rows"></tbody></table><p class="mut" id="more"></p></div>
+      <div>
+        <div class="card rose">
+          <h3>✎ स्पेलिंग सुधार</h3>
+          <p class="mut" style="margin-top:0">यहाँ जोड़े गए गलत शब्दों पर लाल लाइन आएगी और सही शब्द सबसे ऊपर सुझाया जाएगा। कोई शब्द अपने-आप नहीं बदलेगा।</p>
+          <div style="display:flex;gap:6px;margin-bottom:10px"><input class="inp" id="fxW" placeholder="गलत"><input class="inp" id="fxR" placeholder="सही"><button class="btn pr" id="bFixAdd">जोड़ें</button></div>
+          <table><tbody id="fixRows"></tbody></table>
+        </div>
+        <div class="card amber" style="margin-top:14px">
+          <h3>🔍 शब्दकोश में संभावित गलतियाँ</h3>
+          <p class="mut" style="margin-top:0">पुरानी फ़ाइलों से आई गलत स्पेलिंग (जैसे मात्रा की गलती) ढूँढें और एक क्लिक में सुधार जोड़ें।</p>
+          <button class="btn gd" id="bTypo">खोजें</button>
+          <div id="typoBox" style="margin-top:10px"></div>
+        </div>
+      </div>
+      </div>
+    </section>
+
+    <!-- सिंक -->
+    <section class="view" id="vSync">
+      <div class="h"><h2>☁ Firebase सिंक</h2></div>
+      <div class="grid">
+        <div class="card green" id="cLogin">
+          <h3>खाता</h3>
+          <div id="loginBox">
+            <input class="inp" id="em" type="email" placeholder="ईमेल" style="margin-bottom:8px">
+            <input class="inp" id="pw" type="password" placeholder="पासवर्ड (कम से कम 6 अक्षर)" style="margin-bottom:10px">
+            <button class="btn pr" id="bLogin">लॉगिन</button>
+            <button class="btn" id="bSignup">नया खाता बनाएँ</button>
+          </div>
+          <div id="userBox" style="display:none">
+            <p>✅ लॉगिन: <b id="uMail"></b></p>
+            <p class="mut" id="syncInfo"></p>
+            <button class="btn" id="bSyncNow">⟳ अभी सिंक करें</button>
+            <button class="btn dn" id="bLogout">लॉगआउट</button>
+          </div>
+          <p class="mut">हर डिवाइस पर एक ही ईमेल से लॉगिन करें। सबका शब्दकोश और बयान आपस में जुड़ जाएँगे।</p>
+        </div>
+        <div class="card amber">
+          <h3>Firebase Config</h3>
+          <textarea class="inp" id="cfg" placeholder='Firebase console → Project settings → Your apps → firebaseConfig यहाँ पेस्ट करें
+{ apiKey: "...", authDomain: "...", projectId: "...", appId: "..." }'></textarea>
+          <div style="margin-top:8px;display:flex;gap:8px"><button class="btn gd" id="bCfg">सेव करें</button><button class="btn dn" id="bCfgDel">हटाएँ</button></div>
+          <p class="mut">CFM वाला project भी चलेगा। Authentication में <b>Email/Password</b> चालू करें और Firestore बना हो।</p>
+        </div>
+        <div class="card violet" style="grid-column:1/-1">
+          <h3>Firestore Rules (मौजूदा rules में ये block जोड़ें — CFM वाले मत हटाइए)</h3>
+<pre class="rules">match /bayanSahayak/{uid}/{document=**} {
+  allow read, write: if request.auth != null && request.auth.uid == uid;
+}</pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- सेटिंग -->
+    <section class="view" id="vSet">
+      <div class="h"><h2>⚙ सेटिंग</h2></div>
+      <div class="grid">
+        <div class="card blue">
+          <h3>सुझाव</h3>
+          <label class="row"><input type="checkbox" id="sAuto"> टाइप करते समय सीखें</label>
+          <label class="row"><input type="checkbox" id="sNext"> स्पेस के बाद अगला शब्द सुझाएँ</label>
+          <label class="row"><input type="checkbox" id="sPhrase"> पूरा वाक्यांश दिखाएँ</label>
+          <label class="row"><input type="checkbox" id="sSpell"> गलत लगने वाले शब्द पर लाल लाइन (हिंदी शब्दकोश से)</label>
+          <label class="row"><input type="checkbox" id="sBase"> अपनी याद के साथ हिंदी शब्दकोश से भी शब्द सुझाएँ (📖)</label>
+          <p class="mut"><b>Tab</b> = शब्द · <b>Ctrl+Enter</b> = वाक्यांश · <b>↑↓</b> चुनें · <b>Esc</b> बंद<br>मोबाइल पर ऊपर की पट्टी से शब्द टैप करें।</p>
+        </div>
+        <div class="card violet">
+          <h3>थीम</h3>
+          <select class="inp" id="dTheme" style="width:auto"><option value="auto">अपने-आप (सिस्टम के हिसाब से)</option><option value="dark">🌙 डार्क</option><option value="light">☀ लाइट</option></select>
+          <p class="mut">ऊपर 🌙/☀ बटन से भी बदल सकते हैं। डार्क में भी .docx/प्रिंट सामान्य (सफ़ेद पेज, काला टेक्स्ट) ही बनेगा।</p>
+        </div>
+        <div class="card gold">
+          <h3>डिफ़ॉल्ट फ़ॉर्मेट (नए बयान के लिए)</h3>
+          <div style="display:flex;gap:8px;flex-wrap:wrap"><select class="inp" id="dFont" style="width:auto"></select><select class="inp" id="dSize" style="width:auto"></select><select class="inp" id="dLs" style="width:auto"><option value="1">1.0</option><option value="1.15">1.15</option><option value="1.5">1.5</option><option value="2">2.0</option></select></div>
+        </div>
+        <div class="card green">
+          <h3>बैकअप</h3>
+          <button class="btn" id="bExp">⬇ पूरा बैकअप (JSON)</button>
+          <button class="btn" id="bImp">⬆ बैकअप डालें</button>
+          <input type="file" id="fj" accept=".json" hidden>
+          <p class="mut">सिंक के बिना भी डेटा इस browser में सुरक्षित रहता है। फिर भी कभी-कभी बैकअप ले लें।</p>
+        </div>
+        <div class="card rose">
+          <h3>खतरनाक</h3>
+          <button class="btn dn" id="bWipe">पूरा शब्दकोश मिटाएँ (सब डिवाइस)</button>
+          <p class="mut">बयान (documents) नहीं मिटेंगे, सिर्फ़ सीखे हुए शब्द।</p>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+<div class="toast" id="toast"></div>
+<div id="modal"><div class="mbox"><h3 id="mT"></h3><div id="mB"></div><div class="mf"><button class="btn" id="mNo">रद्द</button><button class="btn pr" id="mOk">ठीक है</button></div></div></div>
+<script src="app.js?v=202611220910"></script>
+</body>
+</html>
